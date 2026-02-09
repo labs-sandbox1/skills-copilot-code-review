@@ -1,15 +1,137 @@
 """
-MongoDB database configuration and setup for Mergington High School API
+In-memory database configuration and setup for Mergington High School API
 """
 
-from pymongo import MongoClient
 from argon2 import PasswordHasher, exceptions as argon2_exceptions
+from typing import Dict, Any, List, Optional
+from copy import deepcopy
 
-# Connect to MongoDB
-client = MongoClient('mongodb://localhost:27017/')
-db = client['mergington_high']
-activities_collection = db['activities']
-teachers_collection = db['teachers']
+
+class InMemoryCollection:
+    """Simple in-memory collection that mimics MongoDB collection interface"""
+    
+    def __init__(self):
+        self.data: Dict[str, Dict[str, Any]] = {}
+    
+    def find_one(self, query: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Find a single document matching the query"""
+        if "_id" in query:
+            doc = self.data.get(query["_id"])
+            if doc:
+                result = deepcopy(doc)
+                result["_id"] = query["_id"]
+                return result
+        return None
+    
+    def find(self, query: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Find all documents matching the query"""
+        if query is None:
+            query = {}
+        
+        results = []
+        for doc_id, doc in self.data.items():
+            match = True
+            
+            # Handle schedule_details.days filter
+            if "schedule_details.days" in query:
+                days_query = query["schedule_details.days"]
+                if "$in" in days_query:
+                    required_day = days_query["$in"][0]
+                    if required_day not in doc.get("schedule_details", {}).get("days", []):
+                        match = False
+            
+            # Handle start_time filter
+            if "schedule_details.start_time" in query and match:
+                start_time_query = query["schedule_details.start_time"]
+                if "$gte" in start_time_query:
+                    required_time = start_time_query["$gte"]
+                    actual_time = doc.get("schedule_details", {}).get("start_time", "")
+                    if actual_time < required_time:
+                        match = False
+            
+            # Handle end_time filter
+            if "schedule_details.end_time" in query and match:
+                end_time_query = query["schedule_details.end_time"]
+                if "$lte" in end_time_query:
+                    required_time = end_time_query["$lte"]
+                    actual_time = doc.get("schedule_details", {}).get("end_time", "")
+                    if actual_time > required_time:
+                        match = False
+            
+            if match:
+                result = deepcopy(doc)
+                result["_id"] = doc_id
+                results.append(result)
+        
+        return results
+    
+    def insert_one(self, document: Dict[str, Any]) -> Any:
+        """Insert a single document"""
+        doc_id = document.get("_id")
+        if doc_id is None:
+            raise ValueError("Document must have an _id field")
+        
+        doc_copy = deepcopy(document)
+        doc_copy.pop("_id", None)
+        self.data[doc_id] = doc_copy
+        return type('obj', (object,), {'inserted_id': doc_id})
+    
+    def update_one(self, query: Dict[str, Any], update: Dict[str, Any]) -> Any:
+        """Update a single document"""
+        if "_id" not in query:
+            return type('obj', (object,), {'modified_count': 0})
+        
+        doc_id = query["_id"]
+        if doc_id not in self.data:
+            return type('obj', (object,), {'modified_count': 0})
+        
+        doc = self.data[doc_id]
+        
+        # Handle $push operation
+        if "$push" in update:
+            for key, value in update["$push"].items():
+                if key not in doc:
+                    doc[key] = []
+                doc[key].append(value)
+        
+        # Handle $pull operation
+        if "$pull" in update:
+            for key, value in update["$pull"].items():
+                if key in doc and isinstance(doc[key], list):
+                    doc[key] = [item for item in doc[key] if item != value]
+        
+        # Handle $set operation
+        if "$set" in update:
+            for key, value in update["$set"].items():
+                doc[key] = value
+        
+        return type('obj', (object,), {'modified_count': 1})
+    
+    def count_documents(self, query: Dict[str, Any] = None) -> int:
+        """Count documents matching the query"""
+        if query is None or query == {}:
+            return len(self.data)
+        return len(self.find(query))
+    
+    def aggregate(self, pipeline: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Simple aggregation pipeline support"""
+        results = []
+        
+        # Handle the days aggregation pipeline
+        for doc_id, doc in self.data.items():
+            if "schedule_details" in doc and "days" in doc["schedule_details"]:
+                for day in doc["schedule_details"]["days"]:
+                    if {"_id": day} not in results:
+                        results.append({"_id": day})
+        
+        # Sort results
+        results.sort(key=lambda x: x["_id"])
+        return results
+
+
+# Initialize in-memory collections
+activities_collection = InMemoryCollection()
+teachers_collection = InMemoryCollection()
 
 # Methods
 
