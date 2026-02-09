@@ -132,6 +132,7 @@ class InMemoryCollection:
 # Initialize in-memory collections
 activities_collection = InMemoryCollection()
 teachers_collection = InMemoryCollection()
+announcements_collection = InMemoryCollection()
 
 # Methods
 
@@ -171,6 +172,11 @@ def init_database():
         for teacher in initial_teachers:
             teachers_collection.insert_one(
                 {"_id": teacher["username"], **teacher})
+
+    # Initialize announcements if empty
+    if announcements_collection.count_documents({}) == 0:
+        for announcement in initial_announcements:
+            announcements_collection.insert_one(announcement)
 
 
 # Initial database if empty
@@ -327,5 +333,16 @@ initial_teachers = [
         "display_name": "Principal Martinez",
         "password": hash_password("admin789"),
         "role": "admin"
+    }
+]
+
+initial_announcements = [
+    {
+        "_id": "announcement-1",
+        "message": "Activity registration is open until the end of the month. Don't lose your spot!",
+        "start_date": "2026-02-01",
+        "expiration_date": "2026-02-28",
+        "created_by": "principal",
+        "created_at": "2026-02-01T08:00:00Z"
     }
 ]

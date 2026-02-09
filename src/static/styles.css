@@ -666,9 +666,285 @@ footer {
 }
 
 .announcement-banner {
-  background-color: #4caf50;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
   color: white;
   text-align: center;
-  padding: 15px;
-  font-weight: bold;
+  padding: 12px 20px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid #2e7d32;
+  margin-bottom: 8px;
+  animation: slideDown 0.3s ease-out;
 }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#announcements-container {
+  margin-bottom: 10px;
+}
+
+/* Announcements Management Modal */
+.announcements-modal-content {
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.announcements-section {
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: var(--background);
+  border-radius: 8px;
+}
+
+.announcements-section h4 {
+  color: var(--primary);
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 8px;
+}
+
+#announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.announcement-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 15px;
+  background-color: var(--surface);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.announcement-item:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.announcement-item.expired {
+  opacity: 0.6;
+  background-color: #f9f9f9;
+}
+
+.announcement-content {
+  flex: 1;
+  position: relative;
+}
+
+.announcement-status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.announcement-status-badge.active {
+  background-color: var(--success-light);
+  color: var(--success);
+}
+
+.announcement-status-badge.expired {
+  background-color: var(--error-light);
+  color: var(--error);
+}
+
+.announcement-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  word-wrap: break-word;
+}
+
+.announcement-dates {
+  display: flex;
+  gap: 15px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.announcement-dates span {
+  display: flex;
+  align-items: center;
+}
+
+.announcement-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.announcement-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 100px;
+}
+
+.edit-announcement-btn,
+.delete-announcement-btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.edit-announcement-btn {
+  background-color: var(--info-light);
+  color: var(--info);
+  border: 1px solid #bee5eb;
+}
+
+.edit-announcement-btn:hover {
+  background-color: #b8daff;
+  transform: scale(1.05);
+}
+
+.delete-announcement-btn {
+  background-color: var(--error-light);
+  color: var(--error);
+  border: 1px solid #f5c6cb;
+}
+
+.delete-announcement-btn:hover {
+  background-color: #f8d7da;
+  transform: scale(1.05);
+}
+
+/* Announcement Form */
+#announcement-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#announcement-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+#announcement-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .announcement-item {
+    flex-direction: column;
+  }
+  
+  .announcement-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-top: 5px;
+}
+
+.required {
+  color: var(--error);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#announcement-submit-btn,
+#announcement-cancel-btn {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#announcement-submit-btn {
+  background-color: var(--primary);
+  color: var(--primary-text);
+  flex: 1;
+}
+
+#announcement-submit-btn:hover {
+  background-color: var(--primary-light);
+}
+
+#announcement-cancel-btn {
+  background-color: var(--text-secondary);
+  color: white;
+}
+
+#announcement-cancel-btn:hover {
+  background-color: #555;
+}
+
+.no-data-text {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 20px;
+}
+
+.error-text {
+  text-align: center;
+  color: var(--error);
+  padding: 20px;
+}
+
+#manage-announcements-button {
+  margin-right: 10px;
